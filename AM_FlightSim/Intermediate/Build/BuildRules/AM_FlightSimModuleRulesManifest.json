@@ -1,0 +1,8 @@
+{
+	"SourceFiles": [
+		"C:\\Users\\drake\\Documents\\GitHub\\Flight-Simulator\\AM_FlightSim\\Source\\AM_FlightSim\\AM_FlightSim.Build.cs",
+		"C:\\Users\\drake\\Documents\\GitHub\\Flight-Simulator\\AM_FlightSim\\Source\\AM_FlightSim.Target.cs",
+		"C:\\Users\\drake\\Documents\\GitHub\\Flight-Simulator\\AM_FlightSim\\Source\\AM_FlightSimEditor.Target.cs"
+	],
+	"EngineVersion": "5.3.2"
+}
