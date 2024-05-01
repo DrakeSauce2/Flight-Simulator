@@ -21,6 +21,11 @@ class AFPlayerCharacter : public AFCharacterBase
 public:
 	AFPlayerCharacter();
 
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	virtual void BeginPlay() override;
+
 private:
 	UPROPERTY(visibleAnywhere, Category = "View")
 		USpringArmComponent* cameraBoom;
@@ -28,7 +33,34 @@ private:
 	UPROPERTY(visibleAnywhere, Category = "View")
 		UCameraComponent* viewCamera;
 
-	virtual void PawnClientRestart() override;
+/*****************************************************/
+/*                     Physics                       */
+/*****************************************************/
+
+	UPROPERTY(EditDefaultsOnly, Category = "Plane")
+		float TakeoffSpeedThreshold;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Plane")
+		float ThrustSpeed;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Plane")
+		float MaxThrottle = 750.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Plane")
+		float LookInterpRate = 10.f;
+
+	void Throttle();
+	void Speed();
+
+/*****************************************************/
+/*                     Visual                        */
+/*****************************************************/
+
+	UPROPERTY(EditDefaultsOnly, Category = "Visual")
+	class UNiagaraComponent* LeftJetVFX;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Visual")
+	class UNiagaraComponent* RightJetVFX;
 
 /*****************************************************/
 /*                       Input                       */
@@ -42,15 +74,31 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 		UInputAction* LookInputAction;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+		UInputAction* LurchInputAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+		UInputAction* RollInputAction;
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION()
-		void ApplyThrust(const FInputActionValue& InputValue);
+		void InputThrottle(const FInputActionValue& InputValue);
 
 	UFUNCTION()
 		void Look(const FInputActionValue& InputValue);
+	UFUNCTION()
+		void ApplyRudder(const FInputActionValue& InputValue);
+	UFUNCTION()
+		void Roll(const FInputActionValue& InputValue);
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+		float RollRate = 15.f;
 
-	UPROPERTY()
-		float ThrustValue = 0;
+	FTimerHandle ThrottleTimer;
+
+		float ThrottleValue = 0;
+		float ThrottleInRate = 60.f;
+		float currentThrottle = 0;
+		float Rudder = 0;
 
 };

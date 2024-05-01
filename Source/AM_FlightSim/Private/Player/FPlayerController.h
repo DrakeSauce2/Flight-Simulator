@@ -14,4 +14,13 @@ class AFPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void OnPossess(APawn* NewPawn) override;
+
+	virtual void BeginPlay() override;
+
+private:
+	UPROPERTY()
+		class AFPlayerCharacter* PlayerCharacter;
+
 };

@@ -10,7 +10,7 @@ public class AM_FlightSim : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
 
-        PrivateDependencyModuleNames.AddRange(new string[] { "EnhancedInput", "Slate", "SlateCore", "UMG" });
+        PrivateDependencyModuleNames.AddRange(new string[] { "EnhancedInput", "Slate", "SlateCore", "UMG", "Niagara" });
 
     }
 }
