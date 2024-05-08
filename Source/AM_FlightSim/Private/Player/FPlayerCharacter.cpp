@@ -40,47 +40,60 @@ void AFPlayerCharacter::Tick(float DeltaTime)
 	if (!GetCapsuleComponent()) return;
 
 	GetCapsuleComponent()->AddTorqueInDegrees(-GetCapsuleComponent()->GetPhysicsAngularVelocityInDegrees() / 0.75f, NAME_None, true);
-	GetCapsuleComponent()->AddForce(FVector(0, 0, -10000.f), NAME_None, true);
 
-	Speed();
+	CalculateVelocity();
+}
 
-	if (ThrottleValue <= 0) 
+FVector AFPlayerCharacter::CalculateVerticleForce()
+{
+	// Lift = LiftCoefficient * Density * VelocityOfAir^2 / 2 * WingArea
+	// Lift = AoA * (1/2Density) * Speed * WingArea
+	float AngleOfAttack = FVector::DotProduct(GetCapsuleComponent()->GetForwardVector(), FVector(1.f, 0, 0));
+	AngleOfAttack = FMath::RadiansToDegrees(AngleOfAttack);
+	float AirDensity = 1.204f; // kg/m
+	Lift = AngleOfAttack * (AirDensity/2) * Velocity * 56.5f;
+
+	UE_LOG(LogTemp, Warning, TEXT("AoA: %f"), AngleOfAttack);
+
+	Weight = Mass * Gravity;
+	return Lift + FVector(0, 0, Weight);
+}
+
+FVector AFPlayerCharacter::CalculateDrag()
+{
+	FVector DragForce = DragCoefficient * (Velocity.SizeSquared() / 2.f) * Velocity.GetSafeNormal();
+	return  DragForce;
+}
+
+void AFPlayerCharacter::CalculateVelocity()
+{
+	Velocity += CalculateVerticleForce() + CalculateDrag() + CalculateThrust();
+	if (Velocity.SizeSquared() > TerminalVelocity * TerminalVelocity)
 	{
-		currentThrottle = FMath::FInterpConstantTo(currentThrottle, 0, DeltaTime, 10.f);
+		Velocity = Velocity.GetSafeNormal() * TerminalVelocity;
 	}
+
+	GetCapsuleComponent()->AddForce(CalculateVerticleForce());
+	GetCapsuleComponent()->AddForce(CalculateDrag());
+	GetCapsuleComponent()->AddForce(CalculateThrust());
+	//GetCapsuleComponent()->AddForce(Velocity);
+} 
+
+FVector AFPlayerCharacter::CalculateThrust()
+{
+	FVector ThrustForce = GetCapsuleComponent()->GetForwardVector() * ((EngineThrust * ThrottleValue) / Mass);
+	return ThrustForce;
 }
 
 void AFPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorld()->GetTimerManager().SetTimer(ThrottleTimer, this, &AFPlayerCharacter::Throttle, 1.f/60.f, true);
+	Velocity = GetCapsuleComponent()->GetForwardVector() * StartSpeed;
+
+	ThrottleValue = 0.7f;
 }
 
-void AFPlayerCharacter::Throttle()
-{
-	if (ThrottleValue > 0)
-	{
-		currentThrottle = FMath::Clamp(currentThrottle + 1.f, 0, MaxThrottle);
-
-		if (currentThrottle > 50.f) 
-		{
-			//LeftJetVFX->Activate();
-			//RightJetVFX->Activate();
-		}
-	}
-	else
-	{
-		//LeftJetVFX->Deactivate();
-		//RightJetVFX->Deactivate();
-	}
-}
-
-void AFPlayerCharacter::Speed()
-{
-	FVector ForwardThrust = GetCapsuleComponent()->GetForwardVector() * (currentThrottle * 500.f);
-	GetCapsuleComponent()->SetPhysicsLinearVelocity(FMath::VInterpTo(GetCapsuleComponent()->GetPhysicsLinearVelocity(), ForwardThrust, 0.1f, 1.f));
-}
 
 void AFPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -116,10 +129,10 @@ void AFPlayerCharacter::InputThrottle(const FInputActionValue& InputValue)
 
 void AFPlayerCharacter::Look(const FInputActionValue& InputValue)
 {
-	float input = InputValue.Get<float>();
+	FVector2D input = InputValue.Get<FVector2D>();
 
-	float YThrottle = currentThrottle > 0 ? input * -2000 : (input * -2000) / 3;
-	FVector TargetTorqueY = GetCapsuleComponent()->GetRightVector() * YThrottle;
+	//float YThrottle = currentThrottle > 0 ? input.Y * -2000 : (input.Y * -2000) / 25.F;
+	FVector TargetTorqueY = GetCapsuleComponent()->GetRightVector() * -2000 * input.Y;
 
 	GetCapsuleComponent()->AddTorqueInDegrees
 	(
@@ -131,6 +144,7 @@ void AFPlayerCharacter::Look(const FInputActionValue& InputValue)
 
 void AFPlayerCharacter::ApplyRudder(const FInputActionValue& InputValue)
 {
+	
 	float input = InputValue.Get<float>();
 
 	Rudder = input * (currentThrottle / MaxThrottle);
@@ -144,6 +158,7 @@ void AFPlayerCharacter::ApplyRudder(const FInputActionValue& InputValue)
 	);
 
 	GetCapsuleComponent()->AddTorqueInDegrees(TargetTorque, NAME_None, true);
+	
 }
 
 void AFPlayerCharacter::Roll(const FInputActionValue& InputValue)
@@ -159,5 +174,4 @@ void AFPlayerCharacter::Roll(const FInputActionValue& InputValue)
 		NAME_None,
 		true
 	);
-	
 }

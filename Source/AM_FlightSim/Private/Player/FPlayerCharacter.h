@@ -38,6 +38,22 @@ private:
 /*****************************************************/
 
 	UPROPERTY(EditDefaultsOnly, Category = "Plane")
+		float StartSpeed = 100.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Plane")
+		float Mass = 14378.8781f; // In Kilograms; 14378.8781 is the weight of an F-15
+
+	UPROPERTY(EditDefaultsOnly, Category = "Plane")
+		float Gravity = -9.81f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Plane")
+		float EngineThrust = 10000.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Plane")
+		float TerminalVelocity = 1000.f;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Plane")
 		float TakeoffSpeedThreshold;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Plane")
@@ -49,8 +65,16 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Plane")
 		float LookInterpRate = 10.f;
 
-	void Throttle();
-	void Speed();
+	float DragCoefficient = -0.5f;
+	float Weight;
+
+	FVector Lift;
+	FVector Velocity;
+
+	void CalculateVelocity();
+	FVector CalculateThrust();
+	FVector CalculateDrag();
+	FVector CalculateVerticleForce();
 
 /*****************************************************/
 /*                     Visual                        */
