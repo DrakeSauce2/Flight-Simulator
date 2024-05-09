@@ -28,6 +28,8 @@ AFPlayerCharacter::AFPlayerCharacter()
 	cameraBoom->TargetArmLength = 800.f;
 	bUseControllerRotationYaw = false;
 
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AFPlayerCharacter::OnBeginOverlap);
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(1080.f);
 	GetCharacterMovement()->JumpZVelocity = 600.f;
@@ -60,8 +62,6 @@ void AFPlayerCharacter::CalculateVelocity()
 	}
 	
 	GetCapsuleComponent()->SetAllPhysicsLinearVelocity(Velocity, false);
-
-	UE_LOG(LogTemp, Warning, TEXT("Velocity Magnitude: %f"), Velocity.Size());
 } 
 
 FVector AFPlayerCharacter::CalculateThrust()
@@ -81,7 +81,6 @@ FVector AFPlayerCharacter::CalculateLift()
 
 float AFPlayerCharacter::CalculateAoA()
 {
-	// Calculate the angle between the velocity vector and the longitudinal axis of the airplane
 	float AngleOfAttack = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(GetCapsuleComponent()->GetForwardVector(), FVector::UpVector)));
 
 	return AngleOfAttack - 90;
@@ -93,6 +92,23 @@ void AFPlayerCharacter::BeginPlay()
 
 	Velocity = FVector::ZeroVector;
 
+	ThrottleValue = 0.7f;
+}
+
+void AFPlayerCharacter::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->ActorHasTag("Ground"))
+	{
+		Respawn();
+	}
+}
+
+void AFPlayerCharacter::Respawn()
+{
+	SetActorLocation(FVector(0, 0, 5000.f));
+	SetActorRotation(FRotator::ZeroRotator);
+
+	Velocity = FVector::ZeroVector;
 	ThrottleValue = 0.7f;
 }
 
@@ -125,8 +141,6 @@ void AFPlayerCharacter::InputThrottle(const FInputActionValue& InputValue)
 	float input = InputValue.Get<float>() / ThrottleInRate;
 
 	ThrottleValue = FMath::Clamp(ThrottleValue + input, 0, 1.0f);
-
-	UE_LOG(LogTemp, Warning, TEXT("Thrust Value: %f"), ThrottleValue);
 }
 
 void AFPlayerCharacter::Look(const FInputActionValue& InputValue)
@@ -149,7 +163,6 @@ void AFPlayerCharacter::ApplyRudder(const FInputActionValue& InputValue)
 	
 	float input = InputValue.Get<float>();
 
-	//Rudder = input * (currentThrottle / MaxThrottle);
 	Rudder = input;
 
 	FVector TargetTorque = FMath::VInterpTo

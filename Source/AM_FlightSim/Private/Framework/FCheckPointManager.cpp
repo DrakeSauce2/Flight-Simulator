@@ -4,6 +4,9 @@
 #include "Framework/FCheckPointManager.h"
 
 #include "Framework/FCheckPoint.h"
+#include "Framework/FGameInstance.h"
+
+#include "Kismet/GameplayStatics.h"
 
 #include "Player/FPlayerController.h"
 
@@ -35,6 +38,15 @@ void AFCheckPointManager::BeginPlay()
 	UpdateUI();
 }
 
+void AFCheckPointManager::LoadLevel()
+{
+	UFGameInstance* GameInstance = Cast<UFGameInstance>(GetGameInstance());
+	if (GameInstance)
+	{
+		GameInstance->LoadMainMenu();
+	}
+}
+
 void AFCheckPointManager::NextCheckPoint()
 {
 	Checkpoints[CurrentCheckpoint]->CheckpointVisibility(false);
@@ -49,7 +61,7 @@ void AFCheckPointManager::NextCheckPoint()
 	else 
 	{
 		UE_LOG(LogTemp, Warning, TEXT("End Of Checkpoints!"));
-		// All Checkpoints reached, Display Win Screen
+		LoadLevel();
 	}
 
 }

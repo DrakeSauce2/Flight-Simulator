@@ -11,12 +11,3 @@ void UGameplayUI::OnCheckpointCountUpdated(int CurrentCount, int MaxCount)
 	CheckpointCounterText->SetText(FText::FromString(DisplayText));
 }
 
-void UGameplayUI::OnTimerUpdated(float ElapsedTime)
-{
-    int32 Minutes = FMath::FloorToInt(ElapsedTime / 60.0f);
-    int32 Seconds = FMath::FloorToInt(FMath::Fmod(ElapsedTime, 60.0f));
-
-    FString DisplayText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
-
-    CheckpointCounterText->SetText(FText::FromString(DisplayText));
-}

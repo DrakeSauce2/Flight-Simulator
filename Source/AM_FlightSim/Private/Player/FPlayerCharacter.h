@@ -26,12 +26,19 @@ public:
 
 	virtual void BeginPlay() override;
 
+protected:
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 private:
 	UPROPERTY(visibleAnywhere, Category = "View")
 		USpringArmComponent* cameraBoom;
 
 	UPROPERTY(visibleAnywhere, Category = "View")
 		UCameraComponent* viewCamera;
+
+	void Respawn();
 
 /*****************************************************/
 /*                     Physics                       */
@@ -109,6 +116,6 @@ private:
 
 	float ThrottleValue;
 	float Rudder;
-	float ThrottleInRate = 1.f;
+	float ThrottleInRate = 100.f;
 
 };

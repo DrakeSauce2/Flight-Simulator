@@ -21,8 +21,13 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Maps")
+	TSoftObjectPtr<UWorld> GameLevel;
+
 	UPROPERTY(EditAnywhere, Category = "Checkpoints")
 	TArray<AFCheckPoint*> Checkpoints;
+
+	void LoadLevel();
 
 	UFUNCTION()
 	void NextCheckPoint();

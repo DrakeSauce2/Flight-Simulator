@@ -20,11 +20,10 @@ public:
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* LoadLevelButton;
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Maps")
 	TSoftObjectPtr<UWorld> GameLevel;
 
 	UFUNCTION()
 	void LoadLevel();
-
 };

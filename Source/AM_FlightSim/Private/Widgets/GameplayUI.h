@@ -16,14 +16,9 @@ class UGameplayUI : public UUserWidget
 	
 public:
 	void OnCheckpointCountUpdated(int CurrentCount, int MaxCount);
-	void OnTimerUpdated(float ElapsedTime);
 
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* CheckpointCounterText;
-
-	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* TimerText;
-
 
 };

@@ -3,8 +3,10 @@
 
 #include "Widgets/MainMenu.h"
 
+#include "Framework/FGameInstance.h"
+
 #include "Components/Button.h"
-#include "Kismet/GameplayStatics.h" // Include the GameplayStatics header file
+#include "Kismet/GameplayStatics.h"
 
 
 void UMainMenu::NativeConstruct()
@@ -14,14 +16,10 @@ void UMainMenu::NativeConstruct()
 
 void UMainMenu::LoadLevel()
 {
-    // Load the level synchronously
-    UWorld* LoadedLevel = GameLevel.LoadSynchronous();
-    if (LoadedLevel)
+    UFGameInstance* GameInstance = Cast<UFGameInstance>(GetGameInstance());
+    if (GameInstance)
     {
-        UGameplayStatics::OpenLevel(GetWorld(), LoadedLevel->GetOuter()->GetFName(), true);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Failed to load level: GameLevel is null"));
+        GameInstance->LoadMainLevel();
     }
 }
+

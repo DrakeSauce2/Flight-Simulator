@@ -13,5 +13,5 @@ UCLASS()
 class AFGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
 };
