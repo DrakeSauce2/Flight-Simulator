@@ -19,8 +19,19 @@ public:
 
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	UGameplayUI* GetGUI() { return GameplayUI; }
+
 private:
+	void SpawnGameplayUI();
+
 	UPROPERTY()
 		class AFPlayerCharacter* PlayerCharacter;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+		TSubclassOf<class UGameplayUI> GameplayUIClass;
+
+	UPROPERTY()
+		UGameplayUI* GameplayUI;
 
 };

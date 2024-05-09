@@ -50,31 +50,20 @@ private:
 		float EngineThrust = 10000.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Plane")
-		float TerminalVelocity = 1000.f;
-
-
-	UPROPERTY(EditDefaultsOnly, Category = "Plane")
-		float TakeoffSpeedThreshold;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Plane")
-		float ThrustSpeed;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Plane")
-		float MaxThrottle = 750.f;
+		float MaxVelocity = 1000.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Plane")
 		float LookInterpRate = 10.f;
 
-	float DragCoefficient = -0.5f;
-	float Weight;
-
-	FVector Lift;
 	FVector Velocity;
 
 	void CalculateVelocity();
+
+	FVector CalculateWeight();
+	FVector CalculateLift();
+	float CalculateAoA();
+
 	FVector CalculateThrust();
-	FVector CalculateDrag();
-	FVector CalculateVerticleForce();
 
 /*****************************************************/
 /*                     Visual                        */
@@ -118,11 +107,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 		float RollRate = 15.f;
 
-	FTimerHandle ThrottleTimer;
-
-		float ThrottleValue = 0;
-		float ThrottleInRate = 60.f;
-		float currentThrottle = 0;
-		float Rudder = 0;
+	float ThrottleValue;
+	float Rudder;
+	float ThrottleInRate = 1.f;
 
 };

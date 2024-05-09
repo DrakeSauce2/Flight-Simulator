@@ -44,52 +44,54 @@ void AFPlayerCharacter::Tick(float DeltaTime)
 	CalculateVelocity();
 }
 
-FVector AFPlayerCharacter::CalculateVerticleForce()
+FVector AFPlayerCharacter::CalculateWeight()
 {
-	// Lift = LiftCoefficient * Density * VelocityOfAir^2 / 2 * WingArea
-	// Lift = AoA * (1/2Density) * Speed * WingArea
-	float AngleOfAttack = FVector::DotProduct(GetCapsuleComponent()->GetForwardVector(), FVector(1.f, 0, 0));
-	AngleOfAttack = FMath::RadiansToDegrees(AngleOfAttack);
-	float AirDensity = 1.204f; // kg/m
-	Lift = AngleOfAttack * (AirDensity/2) * Velocity * 56.5f;
-
-	UE_LOG(LogTemp, Warning, TEXT("AoA: %f"), AngleOfAttack);
-
-	Weight = Mass * Gravity;
-	return Lift + FVector(0, 0, Weight);
-}
-
-FVector AFPlayerCharacter::CalculateDrag()
-{
-	FVector DragForce = DragCoefficient * (Velocity.SizeSquared() / 2.f) * Velocity.GetSafeNormal();
-	return  DragForce;
+	FVector Weight = FVector::DownVector * Mass * Gravity;
+	return Weight;
 }
 
 void AFPlayerCharacter::CalculateVelocity()
 {
-	Velocity += CalculateVerticleForce() + CalculateDrag() + CalculateThrust();
-	if (Velocity.SizeSquared() > TerminalVelocity * TerminalVelocity)
-	{
-		Velocity = Velocity.GetSafeNormal() * TerminalVelocity;
-	}
+	Velocity += CalculateThrust() + CalculateWeight() + CalculateLift();
 
-	GetCapsuleComponent()->AddForce(CalculateVerticleForce());
-	GetCapsuleComponent()->AddForce(CalculateDrag());
-	GetCapsuleComponent()->AddForce(CalculateThrust());
-	//GetCapsuleComponent()->AddForce(Velocity);
+	if (Velocity.SizeSquared() > MaxVelocity * MaxVelocity)
+	{
+		Velocity = Velocity.GetSafeNormal() * MaxVelocity;
+	}
+	
+	GetCapsuleComponent()->SetAllPhysicsLinearVelocity(Velocity, false);
+
+	UE_LOG(LogTemp, Warning, TEXT("Velocity Magnitude: %f"), Velocity.Size());
 } 
 
 FVector AFPlayerCharacter::CalculateThrust()
 {
-	FVector ThrustForce = GetCapsuleComponent()->GetForwardVector() * ((EngineThrust * ThrottleValue) / Mass);
+	FVector ThrustForce = GetCapsuleComponent()->GetForwardVector() * ((EngineThrust * ThrottleValue) / 2);
+
 	return ThrustForce;
+}
+
+FVector AFPlayerCharacter::CalculateLift()
+{
+	// Couldn't figure out how to properly apply lift without Bernouli's principle. So this is just a cheat solution.
+	FVector Lift = FVector::UpVector* Gravity* FMath::Cos(CalculateAoA()); 
+
+	return Lift;
+}
+
+float AFPlayerCharacter::CalculateAoA()
+{
+	// Calculate the angle between the velocity vector and the longitudinal axis of the airplane
+	float AngleOfAttack = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(GetCapsuleComponent()->GetForwardVector(), FVector::UpVector)));
+
+	return AngleOfAttack - 90;
 }
 
 void AFPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Velocity = GetCapsuleComponent()->GetForwardVector() * StartSpeed;
+	Velocity = FVector::ZeroVector;
 
 	ThrottleValue = 0.7f;
 }
@@ -131,8 +133,8 @@ void AFPlayerCharacter::Look(const FInputActionValue& InputValue)
 {
 	FVector2D input = InputValue.Get<FVector2D>();
 
-	//float YThrottle = currentThrottle > 0 ? input.Y * -2000 : (input.Y * -2000) / 25.F;
-	FVector TargetTorqueY = GetCapsuleComponent()->GetRightVector() * -2000 * input.Y;
+	float PitchRate = input.Y >= 0 ? -50.f : -25.f;
+	FVector TargetTorqueY = GetCapsuleComponent()->GetRightVector() * PitchRate * input.Y;
 
 	GetCapsuleComponent()->AddTorqueInDegrees
 	(
@@ -147,12 +149,13 @@ void AFPlayerCharacter::ApplyRudder(const FInputActionValue& InputValue)
 	
 	float input = InputValue.Get<float>();
 
-	Rudder = input * (currentThrottle / MaxThrottle);
+	//Rudder = input * (currentThrottle / MaxThrottle);
+	Rudder = input;
 
 	FVector TargetTorque = FMath::VInterpTo
 	(
 		FVector::ZeroVector,
-		GetCapsuleComponent()->GetUpVector() * (Rudder * 1250.f),
+		GetCapsuleComponent()->GetUpVector() * (Rudder * 450.f),
 		0.1f,
 		1.f
 	);
@@ -165,8 +168,7 @@ void AFPlayerCharacter::Roll(const FInputActionValue& InputValue)
 {
 	float input = InputValue.Get<float>();
 
-	float XThrottle = currentThrottle > 0 ? input * -2000 : (input * -2000) / 3;
-	FVector TargetTorqueX = GetCapsuleComponent()->GetForwardVector() * XThrottle;
+	FVector TargetTorqueX = GetCapsuleComponent()->GetForwardVector() * -2000 * input;
 
 	GetCapsuleComponent()->AddTorqueInDegrees
 	(
